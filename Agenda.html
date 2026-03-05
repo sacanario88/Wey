@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda Multilingüe Pro - Grabación Continua</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { min-height: 100vh; background-color: #090c31; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        
+        .contenedor {
+            background-color: #15173c;
+            color: white;
+            width: 100%;
+            max-width: 700px;
+            padding: 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+        }
+
+        h2 { text-align: center; margin-bottom: 1.5rem; color: #4cc9f0; }
+
+        .selector-idioma {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 1.5rem;
+            background: #0d1137;
+            color: #4cc9f0;
+            border: 1px solid #4cc9f0;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+
+        .pantalla-texto {
+            width: 100%;
+            height: 400px;
+            background-color: #090c31;
+            color: #00ffcc;
+            padding: 1.5rem;
+            font-size: 1.2rem;
+            border-radius: 1rem;
+            margin-bottom: 1.5rem;
+            border: 2px solid #1f2251;
+            resize: none;
+            font-family: 'Courier New', monospace;
+        }
+
+        .controles {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .btn {
+            border: 0;
+            padding: 1.2rem;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-grabar { background-color: #4361ee; }
+        .btn-parar { background-color: #e6394a; }
+        .btn-leer { background-color: #f72585; grid-column: span 2; }
+        .btn-borrar { background-color: #3f37c9; }
+        .btn-save { background-color: #4cc9f0; color: #090c31; }
+
+        .btn:hover { opacity: 0.8; transform: scale(0.98); }
+
+        .grabando { 
+            animation: pulso 1.5s infinite; 
+            background-color: #ff0044 !important; 
+        }
+
+        @keyframes pulso {
+            0% { box-shadow: 0 0 0 0 rgba(230, 57, 74, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(230, 57, 74, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(230, 57, 74, 0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="contenedor">
+        <h2>🎙️ Agenda Inteligente</h2>
+        
+        <select id="selectLang" class="selector-idioma">
+    <option value="es-ES">Español (España)</option>
+    <option value="en-GB">English (UK/Europe)</option> <option value="fr-FR">Français</option>
+    <option value="de-DE">Deutsch</option>
+    <option value="it-IT">Italiano</option>
+</select>
+
+        <textarea id="texto" class="pantalla-texto" readonly placeholder="Presiona GRABAR..."></textarea>
+
+        <div class="controles">
+            <button id="btnGrabar" class="btn btn-grabar">🎤 GRABAR FIJO</button>
+            <button id="btnParar" class="btn btn-parar">🛑 PARADA</button>
+            <button id="btnLeer" class="btn btn-leer">🔊 ESCUCHAR NOTA</button>
+            <button id="btnBorrar" class="btn btn-borrar">🗑️ LIMPIAR</button>
+            <button id="btnSave" class="btn btn-save">💾 GUARDAR TXT</button>
+        </div>
+    </div>
+
+    <script>
+        const btnGrabar = document.getElementById('btnGrabar');
+        const btnParar = document.getElementById('btnParar');
+        const btnSave = document.getElementById('btnSave');
+        const btnBorrar = document.getElementById('btnBorrar');
+        const btnLeer = document.getElementById('btnLeer');
+        const textoArea = document.getElementById('texto');
+        const selectLang = document.getElementById('selectLang');
+
+        let grabadoActivo = false; 
+
+        const Reconocimiento = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const reconocimiento = new Reconocimiento();
+        
+        reconocimiento.continuous = true; 
+        reconocimiento.interimResults = false;
+
+        reconocimiento.onresult = (event) => {
+            const resultado = event.results[event.results.length - 1][0].transcript;
+            textoArea.value += resultado + "\n";
+            textoArea.scrollTop = textoArea.scrollHeight;
+        };
+
+        // Si el navegador corta el micro, lo reiniciamos si 'grabadoActivo' es true
+        reconocimiento.onend = () => {
+            if (grabadoActivo) {
+                reconocimiento.start();
+            }
+        };
+
+        btnGrabar.onclick = () => {
+            grabadoActivo = true;
+            reconocimiento.lang = selectLang.value;
+            try {
+                reconocimiento.start();
+            } catch(e) { console.log("Ya iniciado"); }
+            btnGrabar.classList.add('grabando');
+            btnGrabar.innerText = "🔴 ESCUCHANDO...";
+        };
+
+        btnParar.onclick = () => {
+            grabadoActivo = false;
+            reconocimiento.stop();
+            btnGrabar.classList.remove('grabando');
+            btnGrabar.innerText = "🎤 GRABAR FIJO";
+        };
+
+        btnLeer.onclick = () => {
+            if (!textoArea.value) return;
+            const mensaje = new SpeechSynthesisUtterance(textoArea.value);
+            mensaje.lang = selectLang.value;
+            window.speechSynthesis.speak(mensaje);
+        };
+
+        btnBorrar.onclick = () => {
+            if(confirm("¿Borrar todo?")) textoArea.value = "";
+        };
+
+        btnSave.onclick = () => {
+            const blob = new Blob([textoArea.value], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'nota_voz.txt';
+            a.click();
+        };
+    </script>
+</body>
+</html>
