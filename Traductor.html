@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luzia Lite Pro - Radio Edition</title>
+    <style>
+        :root { --primary: #1a4d44; --accent: #4ade80; --bg: #f4f1ea; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); display: flex; justify-content: center; padding: 20px; margin: 0; }
+        .card { background: white; border-radius: 25px; padding: 30px; width: 100%; max-width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        h2 { color: var(--primary); text-align: center; margin-bottom: 20px; }
+        .selector-idioma { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #e0e0e0; margin-bottom: 15px; font-size: 16px; }
+        .input-group { border: 1px solid #e0e0e0; border-radius: 15px; padding: 15px; background: #fff; }
+        textarea { width: 100%; border: none; background: transparent; resize: none; font-size: 16px; outline: none; min-height: 180px; color: #444; }
+        .info-bar { display: flex; justify-content: space-between; margin-top: 12px; font-size: 13px; color: #999; border-top: 1px solid #f0f0f0; padding-top: 10px; }
+        
+        .btn-traducir { display: block; width: 100%; margin: 10px 0; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-traducir:disabled { background: #abbbb8; }
+        
+        .btn-micro-on { background: #2e7d32; }
+        .btn-micro-off { background: #c62828; display: none; }
+
+        .progreso-label { font-size: 14px; color: var(--primary); font-weight: 600; margin-bottom: 10px; display: none; text-align: center; }
+        .resultado { background: #f1f3f1; border-left: 5px solid var(--accent); border-radius: 12px; padding: 18px; min-height: 100px; max-height: 350px; overflow-y: auto; white-space: pre-wrap; color: #222; font-size: 15px; margin-top: 15px; }
+        
+        .botones-extra { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-accion { flex: 1; padding: 12px; background: #fff; border: 2px solid var(--primary); color: var(--primary); border-radius: 12px; font-weight: bold; cursor: pointer; display: none; align-items: center; justify-content: center; gap: 5px; }
+        .btn-accion:hover { background: var(--primary); color: white; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Luzia Lite (Traductor)</h2>
+
+    <select id="selectIdioma" class="selector-idioma">
+        <option value="es" selected>🇪🇸 De Español a...</option>
+        <option value="en">🇺🇸 Inglés</option>
+        <option value="fr">🇫🇷 Francés</option>
+        <option value="pt">🇵🇹 Portugués</option>
+    </select>
+
+    <div class="input-group">
+        <textarea id="textoEntrada" placeholder="Pega aquí textos largos o dicta..." oninput="actualizarInfo()"></textarea>
+        <div class="info-bar">
+            <span id="contador">Caracteres: 0</span>
+            <span id="bloquesEstimados" style="background:#e8f5e9; padding:2px 8px; border-radius:10px; color:#2e7d32;">1 bloque</span>
+            <span style="cursor:pointer; color:#c62828" onclick="borrarTodo()">🗑 Borrar</span>
+        </div>
+    </div>
+
+    <button id="btnTraducir" class="btn-traducir" onclick="iniciarTraduccion()">TRADUCIR TODO</button>
+    
+    <button id="btnMicrofono" class="btn-traducir btn-micro-on" onclick="activarMicro()">🎙 INICIAR MICRO FIJO</button>
+    <button id="btnPararMicro" class="btn-traducir btn-micro-off" onclick="detenerMicro()">⏹ PARAR MICRO</button>
+
+    <div id="statusLabel" class="progreso-label"></div>
+    <div class="resultado" id="cajaResultado">Esperando traducción...</div>
+
+    <div class="botones-extra">
+        <button id="btnOir" class="btn-accion" onclick="hablarTexto()">🔊 OÍR</button>
+        <button id="btnDescargar" class="btn-accion" onclick="guardarTxt()">💾 GUARDAR</button>
+    </div>
+</div>
+
+<script>
+    const input = document.getElementById('textoEntrada');
+    const btnT = document.getElementById('btnTraducir');
+    const btnD = document.getElementById('btnDescargar');
+    const btnO = document.getElementById('btnOir');
+    const btnMic = document.getElementById('btnMicrofono');
+    const btnStopMic = document.getElementById('btnPararMicro');
+    const res = document.getElementById('cajaResultado');
+    const status = document.getElementById('statusLabel');
+    
+    let reconocimiento;
+    let microDebeEstarActivo = false;
+
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        reconocimiento = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        reconocimiento.continuous = true;
+        reconocimiento.interimResults = false;
+        reconocimiento.lang = 'es-ES';
+
+        reconocimiento.onresult = (event) => {
+            let textoEscuchado = "";
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                textoEscuchado += event.results[i][0].transcript;
+            }
+            input.value += (input.value ? " " : "") + textoEscuchado;
+            actualizarInfo();
+            // Mantener el scroll del textarea abajo mientras se escribe
+            input.scrollTop = input.scrollHeight;
+        };
+
+        reconocimiento.onend = () => {
+            if (microDebeEstarActivo) {
+                reconocimiento.start();
+            }
+        };
+
+        reconocimiento.onerror = (event) => {
+            console.log("Error de micro:", event.error);
+        };
+    }
+
+    function activarMicro() {
+        if (!reconocimiento) return alert("Tu navegador no soporta reconocimiento de voz");
+        
+        microDebeEstarActivo = true;
+        reconocimiento.start();
+        
+        // --- AQUÍ ESTÁ EL FOCO ---
+        input.focus();
+        // Mover el cursor al final del texto existente
+        input.setSelectionRange(input.value.length, input.value.length);
+        
+        btnMic.style.display = "none";
+        btnStopMic.style.display = "block";
+        status.style.display = "block";
+        status.innerText = "🎤 Escuchando permanentemente...";
+    }
+
+    function detenerMicro() {
+        microDebeEstarActivo = false;
+        reconocimiento.stop();
+        
+        btnMic.style.display = "block";
+        btnStopMic.style.display = "none";
+        status.innerText = "🎤 Micro apagado.";
+        setTimeout(() => { if(!microDebeEstarActivo) status.style.display = "none"; }, 2000);
+    }
+
+    function actualizarInfo() {
+        const len = input.value.length;
+        document.getElementById('contador').innerText = `Caracteres: ${len}`;
+        const bloques = Math.ceil(len / 400) || 1;
+        document.getElementById('bloquesEstimados').innerText = `${bloques} bloque(s)`;
+    }
+
+    function dividirTexto(texto, limite) {
+        const trozos = [];
+        let i = 0;
+        while (i < texto.length) {
+            let fin = i + limite;
+            if (fin < texto.length) {
+                let ultimoEspacio = texto.lastIndexOf(' ', fin);
+                if (ultimoEspacio > i) fin = ultimoEspacio;
+            }
+            trozos.push(texto.substring(i, fin).trim());
+            i = fin;
+        }
+        return trozos;
+    }
+
+    async function iniciarTraduccion() {
+        const textoFull = input.value.trim();
+        if (!textoFull) return;
+
+        const bloques = dividirTexto(textoFull, 400);
+        res.innerText = "";
+        btnT.disabled = true;
+        btnD.style.display = "none";
+        btnO.style.display = "none";
+        status.style.display = "block";
+        
+        let textoAcumulado = "";
+
+        for (let i = 0; i < bloques.length; i++) {
+            status.innerText = `🔄 Traduciendo bloque ${i + 1} de ${bloques.length}...`;
+            try {
+                const traducido = await llamadaRealTraductor(bloques[i], document.getElementById('selectIdioma').value);
+                textoAcumulado += traducido + " ";
+                res.innerText = textoAcumulado;
+                res.scrollTop = res.scrollHeight;
+            } catch (e) {
+                res.innerText += "\n[Error]";
+            }
+        }
+
+        status.innerText = "✅ ¡Listo!";
+        btnT.disabled = false;
+        btnD.style.display = "flex";
+        btnO.style.display = "flex";
+    }
+
+    async function llamadaRealTraductor(texto, idioma) {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${idioma}&dt=t&q=${encodeURIComponent(texto)}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        return data[0].map(item => item[0]).join('');
+    }
+
+    function hablarTexto() {
+        const mensaje = new SpeechSynthesisUtterance();
+        mensaje.text = res.innerText;
+        mensaje.lang = document.getElementById('selectIdioma').value;
+        window.speechSynthesis.speak(mensaje);
+    }
+
+    function guardarTxt() {
+        const blob = new Blob([res.innerText], { type: "text/plain" });
+        const enlace = document.createElement("a");
+        enlace.href = URL.createObjectURL(blob);
+        enlace.download = `traduccion_${new Date().getTime()}.txt`;
+        enlace.click();
+    }
+
+    function borrarTodo() {
+        input.value = "";
+        res.innerText = "Esperando traducción...";
+        btnD.style.display = "none";
+        btnO.style.display = "none";
+        status.style.display = "none";
+        window.speechSynthesis.cancel();
+        actualizarInfo();
+    }
+</script>
+
+</body>
+</html>
+
