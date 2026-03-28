@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Editor Pro - Exportador</title>
+    <style>
+        :root { --bg: #121212; --panel: #1e1e1e; --accent: #00ff88; --text: #e0e0e0; }
+        body { font-family: sans-serif; margin: 0; background: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; }
+        
+        header { padding: 15px; background: var(--panel); border-bottom: 1px solid #333; text-align: center; }
+        h2 { margin: 0; font-size: 1.2rem; color: var(--accent); }
+
+        #editor-container { flex: 1; padding: 10px; display: flex; flex-direction: column; }
+        
+        textarea { 
+            flex: 1; width: 100%; background: #000; color: var(--accent); 
+            border: 1px solid #444; border-radius: 8px; padding: 12px;
+            font-family: 'Courier New', monospace; font-size: 16px; 
+            box-sizing: border-box; resize: none;
+        }
+
+        .controles { 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; 
+            padding: 15px; background: var(--panel);
+        }
+
+        button { 
+            padding: 15px; border: none; border-radius: 8px; 
+            font-weight: bold; font-size: 14px; cursor: pointer;
+            text-transform: uppercase;
+        }
+        .btn-run { background: var(--accent); color: #000; }
+        .btn-save { background: #007bff; color: white; }
+        .btn-clear { background: #444; color: #ccc; grid-column: span 2; }
+
+        /* Capa de Previsualización */
+        #preview-layer { 
+            display: none; position: fixed; top: 0; left: 0; 
+            width: 100%; height: 100%; background: white; z-index: 1000; 
+            flex-direction: column;
+        }
+        .btn-close { background: #ff4757; color: white; padding: 15px; border: none; width: 100%; }
+        #render-area { flex: 1; border: none; width: 100%; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h2>JS PLAYGROUND & EXPORTER</h2>
+    </header>
+
+    <div id="editor-container">
+        <textarea id="codigoJs" placeholder="// Escribe tu JavaScript aquí..."></textarea>
+    </div>
+
+    <div class="controles">
+        <button class="btn-run" onclick="ejecutarCodigo()">▶ Ejecutar</button>
+        <button class="btn-save" onclick="descargarHtml()">💾 Descargar HTML</button>
+        <button class="btn-clear" onclick="document.getElementById('codigoJs').value=''">Borrar Todo</button>
+    </div>
+
+    <div id="preview-layer">
+        <button class="btn-close" onclick="cerrarPreview()">← VOLVER AL EDITOR</button>
+        <iframe id="render-area"></iframe>
+    </div>
+
+    <script>
+        // 1. FUNCIÓN PARA VER EL RESULTADO (IFRAME)
+        function ejecutarCodigo() {
+            const js = document.getElementById('codigoJs').value;
+            const preview = document.getElementById('preview-layer');
+            const iframe = document.getElementById('render-area');
+
+            const contenido = `
+                <!DOCTYPE html>
+                <html>
+                <head><meta charset="UTF-8"></head>
+                <body style="margin:0; padding:20px; font-family:sans-serif;">
+                    <script>${js}<\/script>
+                </body>
+                </html>`;
+
+            preview.style.display = "flex";
+            const doc = iframe.contentWindow.document;
+            doc.open();
+            doc.write(contenido);
+            doc.close();
+        }
+
+        function cerrarPreview() {
+            document.getElementById('preview-layer').style.display = "none";
+            document.getElementById('render-area').src = "about:blank";
+        }
+
+        // 2. FUNCIÓN PARA DESCARGAR EL ARCHIVO REAL
+        function descargarHtml() {
+            const js = document.getElementById('codigoJs').value;
+            if(!js) return alert("Escribe algo primero");
+
+            const finalHtml = `<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Exportada</title>
+</head>
+<body style="margin:0; padding:20px; font-family:sans-serif;">
+    <script>
+        ${js}
+    <\/script>
+</body>
+</html>`;
+
+            const blob = new Blob([finalHtml], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            
+            // Nombre del archivo con la fecha para no repetir
+            const fecha = new Date().getTime();
+            a.href = url;
+            a.download = `proyecto_${fecha}.html`;
+            
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+
+</body>
+</html>
