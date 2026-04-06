@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EditorHTML - Pro</title>
+    <style>
+        :root {
+            --bg: #000000;
+            --panel: #121212;
+            --accent: #00e5ff;
+            --save: #00c853;
+            --text: #ffffff;
+            --border: #222;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body { 
+            background: var(--bg); color: var(--text); 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
+            margin: 0; height: 100vh; display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Cabecera */
+        header { 
+            background: var(--panel); padding: 10px; 
+            display: flex; flex-direction: column; gap: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        #temp-input { 
+            width: 100%; padding: 12px; background: #1a1a1a;
+            border: 1px solid var(--accent); border-radius: 8px; 
+            color: var(--accent); font-family: monospace; font-size: 14px;
+            outline: none;
+        }
+
+        .action-bar { display: flex; gap: 10px; }
+        .btn {
+            flex: 1; padding: 14px; border: none; border-radius: 8px;
+            font-weight: bold; font-size: 13px; text-transform: uppercase;
+            cursor: pointer;
+        }
+        .btn-add { background: var(--accent); color: #000; }
+        .btn-save { background: var(--save); color: #fff; }
+
+        /* Cuerpo */
+        #main { display: flex; flex: 1; overflow: hidden; }
+
+        #editor-container { flex: 1.4; display: flex; flex-direction: column; padding: 8px; }
+        textarea { 
+            flex: 1; background: #050505; color: #39ff14; 
+            padding: 12px; font-family: 'Courier New', monospace; 
+            border: 1px solid var(--border); border-radius: 6px;
+            font-size: 13px; outline: none; resize: none;
+        }
+
+        /* Lista Lateral */
+        #sidebar { 
+            flex: 1; background: var(--panel); 
+            border-left: 1px solid var(--border); 
+            overflow-y: auto;
+        }
+
+        .cat { 
+            background: #1a1a1a; padding: 10px 15px; font-size: 11px; 
+            color: #666; letter-spacing: 1.5px; font-weight: bold;
+            border-bottom: 1px solid #222;
+        }
+
+        .item { 
+            padding: 16px 15px; border-bottom: 1px solid #1a1a1a; 
+            font-size: 14px; color: #ccc; cursor: pointer;
+        }
+        .item:active { background: #222; color: var(--accent); }
+    </style>
+</head>
+<body>
+
+<header>
+    <input type="text" id="temp-input" placeholder="Selecciona un componente...">
+    <div class="action-bar">
+        <button class="btn btn-add" onclick="addToEditor()">Añadir ↓</button>
+        <button class="btn btn-save" onclick="generateAndSave()">Guardar HTML</button>
+    </div>
+</header>
+
+<div id="main">
+    <div id="editor-container">
+        <textarea id="final-code" spellcheck="false" placeholder="Tu código final se genera aquí..."></textarea>
+    </div>
+
+    <div id="sidebar">
+        <div class="cat">MULTIMEDIA</div>
+        <div class="item" onclick="load('<iframe src=\'https://www.youtube.com/embed/ID_AQUI\' frameborder=\'0\' allowfullscreen></iframe>')">YouTube Iframe</div>
+        <div class="item" onclick="load('<video controls>\n <source src=\'video.mp4\' type=\'video/mp4\'>\n</video>')">Video HTML5</div>
+        <div class="item" onclick="load('<img src=\'https://via.placeholder.com/500\' alt=\'Imagen\'>')">Imagen Pro</div>
+
+        <div class="cat">INTERACTIVO</div>
+        <div class="item" onclick="load('<button type=\'tel\' class=\'btn-action\'>LLAMAR AHORA</button>')">Botón Tipo Tel</div>
+        <div class="item" onclick="load('<input type=\'tel\' placeholder=\'Escribe tu número...\'>')">Input Numérico</div>
+        
+        <div class="cat">CONTENIDO</div>
+        <div class="item" onclick="load('<h1>Mi Título</h1>')">Título H1</div>
+        <div class="item" onclick="load('<p>Este es un texto descriptivo.</p>')">Párrafo</div>
+        <div class="item" onclick="load('<a href=\'#\'>Enlace / Link</a>')">Enlace Web</div>
+
+        <div class="cat">ESTRUCTURA</div>
+        <div class="item" onclick="load('<div class=\'card\'>\n\n</div>')">Caja Contenedora</div>
+        <div class="item" onclick="load('<br>')">Salto de Línea</div>
+        <div class="item" onclick="document.getElementById('final-code').value=''" style="color:#ff5252">🗑️ Borrar Todo</div>
+    </div>
+</div>
+
+<script>
+    const tInput = document.getElementById('temp-input');
+    const fCode = document.getElementById('final-code');
+
+    function load(c) { tInput.value = c; tInput.focus(); }
+    
+    function addToEditor() {
+        if(tInput.value) {
+            fCode.value += tInput.value + "\n";
+            tInput.value = "";
+        }
+    }
+
+    function generateAndSave() {
+        const userCode = fCode.value;
+        if(!userCode) return alert("¡El editor está vacío!");
+
+        // Este bloque de estilo se hereda al guardar
+        const styleInherited = `
+<style>
+    body { background: #000; color: #fff; font-family: sans-serif; padding: 20px; line-height: 1.6; }
+    h1 { color: #00e5ff; border-bottom: 2px solid #222; padding-bottom: 10px; }
+    p { color: #ccc; font-size: 1.1rem; }
+    .btn-action { 
+        background: #00e5ff; color: #000; border: none; padding: 15px 30px; 
+        font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; margin: 10px 0;
+    }
+    input { 
+        width: 100%; padding: 12px; background: #111; color: #00e5ff; 
+        border: 1px solid #333; border-radius: 5px; margin: 10px 0;
+    }
+    iframe, video, img { 
+        width: 100%; border-radius: 12px; margin: 15px 0; border: 1px solid #222;
+        box-shadow: 0 5px 20px rgba(0,229,255,0.1); aspect-ratio: 16/9;
+    }
+    .card { background: #111; padding: 20px; border-radius: 10px; border: 1px solid #222; }
+    a { color: #00e5ff; text-decoration: none; font-weight: bold; }
+</style>`;
+
+        const finalHTML = `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyecto Guardado</title>
+    ${styleInherited}
+</head>
+<body>
+    ${userCode}
+</body>
+</html>`;
+
+        const blob = new Blob([finalHTML], {type:'text/html'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'mi_web.html';
+        a.click();
+    }
+</script>
+
+</body>
+</html>
