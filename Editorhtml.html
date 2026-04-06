@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Componentes Pro</title>
+    <style>
+        :root {
+            --bg: #0f0f0f;
+            --panel: #1a1a1a;
+            --accent: #00d1ff;
+            --text: #e0e0e0;
+            --border: #333;
+        }
+
+        body { 
+            background: var(--bg); color: var(--text); 
+            font-family: sans-serif; display: flex; 
+            flex-direction: column; height: 100vh; margin: 0; 
+        }
+
+        /* Barra superior */
+        header { 
+            background: var(--panel); padding: 10px; 
+            display: flex; gap: 10px; align-items: center;
+            border-bottom: 2px solid var(--border);
+        }
+
+        #temp-input { 
+            flex-grow: 1; padding: 12px; background: #222;
+            border: 1px solid var(--accent); border-radius: 4px; 
+            color: #fff; font-family: monospace;
+        }
+
+        .btn-main {
+            background: var(--accent); border: none; padding: 10px 20px;
+            border-radius: 4px; font-weight: bold; cursor: pointer;
+        }
+
+        .btn-save {
+            background: #4CAF50; color: white; border: none; padding: 10px;
+            border-radius: 4px; font-weight: bold; cursor: pointer;
+        }
+
+        /* Cuerpo principal */
+        #main { display: flex; flex: 1; overflow: hidden; }
+
+        /* Área Izquierda (Textarea) */
+        #editor { flex: 2; padding: 15px; display: flex; flex-direction: column; }
+        textarea { 
+            flex: 1; background: #000; color: #00ff00; 
+            padding: 15px; font-family: monospace; border: 1px solid var(--border);
+            resize: none; outline: none; font-size: 14px;
+        }
+
+        /* Área Derecha (Lista) */
+        #sidebar { 
+            flex: 0 0 280px; background: var(--panel); 
+            border-left: 2px solid var(--border); overflow-y: auto;
+        }
+
+        .category { 
+            padding: 10px; background: #222; font-size: 12px; 
+            color: var(--accent); font-weight: bold; border-bottom: 1px solid var(--border);
+        }
+
+        .item { 
+            padding: 12px; border-bottom: 1px solid #222; 
+            cursor: pointer; transition: 0.2s; font-size: 14px;
+        }
+
+        .item:hover { background: #333; color: var(--accent); }
+    </style>
+</head>
+<body>
+
+<header>
+    <input type="text" id="temp-input" placeholder="Haz clic en un componente para editarlo aquí...">
+    <button class="btn-main" onclick="addToEditor()">AÑADIR ↓</button>
+    <button class="btn-save" onclick="saveToFile()">GUARDAR .HTML</button>
+</header>
+
+<div id="main">
+    <div id="editor">
+        <textarea id="final-code" placeholder="Tu código final aparecerá aquí..."></textarea>
+    </div>
+
+    <div id="sidebar">
+        <div class="category">MULTIMEDIA</div>
+        <div class="item" onclick="load('<iframe src=\'https://www.youtube.com/embed/VIDEO_ID\' width=\'100%\' height=\'315\' frameborder=\'0\' allowfullscreen></iframe>')">Iframe Video (YouTube)</div>
+        <div class="item" onclick="load('<video width=\'100%\' controls>\n  <source src=\'video.mp4\' type=\'video/mp4\'>\n</video>')">Video Local / URL</div>
+        <div class="item" onclick="load('<img src=\'https://via.placeholder.com/300\' width=\'100%\'>')">Imagen</div>
+
+        <div class="category">FORMULARIO</div>
+        <div class="item" onclick="load('<button type=\'tel\' onclick=\'alert(1)\'>Botón Numérico</button>')">Botón Tel</div>
+        <div class="item" onclick="load('<input type=\'tel\' id=\'numero\' placeholder=\'Escribe número...\'>')">Input Tel (Número)</div>
+        <div class="item" onclick="load('<div id=\'display\'>00.00</div>')">Div Pantalla/Número</div>
+
+        <div class="category">TEXTO Y LINKS</div>
+        <div class="item" onclick="load('<h1>Título Principal</h1>')">Título H1</div>
+        <div class="item" onclick="load('<p>Párrafo de descripción aquí.</p>')">Párrafo P</div>
+        <div class="item" onclick="load('<a href=\'#\' style=\'color:cyan\'>Enlace / Link</a>')">Enlace con Color</div>
+        
+        <div class="category">ESTRUCTURA</div>
+        <div class="item" onclick="load('<div style=\'background:#333; padding:20px; border-radius:10px\'>\n\n</div>')">Contenedor Caja</div>
+        <div class="item" onclick="load('<br>')">Salto de Línea</div>
+    </div>
+</div>
+
+<script>
+    const tInput = document.getElementById('temp-input');
+    const fCode = document.getElementById('final-code');
+
+    // Carga el código en el input de arriba para editarlo
+    function load(code) {
+        tInput.value = code;
+    }
+
+    // Pasa el código del input al textarea grande
+    function addToEditor() {
+        if(tInput.value) {
+            fCode.value += tInput.value + "\n";
+            tInput.value = ""; // Limpia para el siguiente
+        }
+    }
+
+    // Función para descargar el archivo
+    function saveToFile() {
+        const text = fCode.value;
+        if(!text) return alert("¡Añade algo de código primero!");
+        
+        const blob = new Blob([text], { type: 'text/html' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'mi_proyecto.html';
+        a.click();
+    }
+</script>
+
+</body>
+</html>
