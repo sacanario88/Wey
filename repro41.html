@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyecto Guardado - Limpiador de URL</title>
+    
+<style>
+    body { background: #000; color: #fff; font-family: sans-serif; padding: 20px; line-height: 1.6; }
+    h1 { color: #00e5ff; border-bottom: 2px solid #222; padding-bottom: 10px; font-size: 1.5rem; }
+    p { color: #ccc; font-size: 1.1rem; }
+    
+    /* Estilo del Input */
+    input { 
+        width: 100%; padding: 15px; background: #111; color: #00e5ff; 
+        border: 1px solid #333; border-radius: 8px; margin: 10px 0;
+        box-sizing: border-box; font-size: 16px; /* Evita zoom automático en iPhone */
+    }
+    
+    /* Contenedor del video */
+    video { 
+        width: 100%; border-radius: 12px; margin: 15px 0; border: 1px solid #222;
+        box-shadow: 0 5px 20px rgba(0,229,255,0.1); background: #000;
+    }
+
+    /* Botón de acción */
+    .btn-ver { 
+        background: #00e5ff; color: #000; border: none; padding: 15px; 
+        font-weight: bold; border-radius: 8px; cursor: pointer; 
+        width: 100%; font-size: 1.1rem; transition: 0.3s;
+    }
+    .btn-ver:active { transform: scale(0.98); background: #00b8cc; }
+
+    .card { background: #111; padding: 15px; border-radius: 10px; border: 1px solid #222; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+    <h1>Reproductor Inteligente</h1>
+
+    <video id="reproductor-pro" controls>
+        <source src="" type="video/mp4">
+        Tu navegador no soporta vídeo.
+    </video>
+
+    <div class="card">
+        <input type="text" id="url-video" 
+               onfocus="this.select()" 
+               placeholder="Pega el SRC aquí (limpia %2D, %20...)">
+        
+        <button class="btn-ver" onclick="cargarNuevoVideo()">VER VÍDEO</button>
+    </div>
+
+<script>
+function cargarNuevoVideo() {
+    // 1. Obtenemos lo que se pegó en el input
+    var textoPegado = document.getElementById('url-video').value;
+    
+    // 2. DECODIFICACIÓN: Convierte %2D en -, %20 en espacio, etc.
+    var urlLimpia = decodeURIComponent(textoPegado);
+    
+    // 3. Buscamos el elemento video
+    var video = document.getElementById('reproductor-pro');
+    
+    if (urlLimpia) {
+        // Aplicamos la URL ya traducida al video
+        video.src = urlLimpia;
+        video.load();
+        video.play();
+        
+        // Opcional: Actualizamos el input para que veas la URL real
+        document.getElementById('url-video').value = urlLimpia;
+        console.log("URL procesada: " + urlLimpia);
+    } else {
+        alert("Por favor, pega una dirección primero.");
+    }
+}
+function ponerTexto(el) {
+  document.getElementById("url-video").value = el.textContent;
+}
+</script>
+
+</body>
+</html>
