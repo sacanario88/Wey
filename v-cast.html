@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V-Cast Player</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; background: #000; overflow: hidden; font-family: sans-serif; }
+        #ui { 
+            position: absolute; top: 0; left: 0; right: 0; 
+            background: rgba(0,0,0,0.6); padding: 15px; z-index: 10; 
+            display: flex; gap: 10px; transition: 0.3s;
+        }
+        #ui.hidden { transform: translateY(-100%); opacity: 0; }
+        input { flex-grow: 1; padding: 12px; border-radius: 5px; border: none; font-size: 16px; }
+        button { padding: 12px 20px; cursor: pointer; border-radius: 5px; border: none; font-weight: bold; }
+        .btn-play { background: #28a745; color: white; }
+        .btn-hide { background: #555; color: white; }
+        video { width: 100vw; height: 100vh; object-fit: fill; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div id="ui">
+        <input type="text" id="url" placeholder="Pega URL .m3u8 aquí (puedes incluir ?t=segundos)">
+        <button class="btn-play" onclick="play()">CARGAR</button>
+        <button class="btn-hide" onclick="toggleUI()">OCULTAR</button>
+    </div>
+
+    <video id="v" onclick="toggleUI()" playsinline></video>
+
+    <script>
+        const video = document.getElementById('v');
+        const ui = document.getElementById('ui');
+
+        function toggleUI() {
+            ui.classList.toggle('hidden');
+        }
+
+        function play() {
+            const url = document.getElementById('url').value;
+            if(!url) return;
+
+            const tMatch = url.match(/[?&]t=([0-9.]+)/);
+            const startTime = tMatch ? parseFloat(tMatch[1]) : 0;
+
+            if (Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource(url);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                    video.currentTime = startTime;
+                    video.play();
+                    ui.classList.add('hidden');
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = url;
+                video.addEventListener('loadedmetadata', () => {
+                    video.currentTime = startTime;
+                    video.play();
+                    ui.classList.add('hidden');
+                });
+            }
+        }
+    </script>
+</body>
+</html>
