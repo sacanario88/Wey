@@ -27,16 +27,15 @@
             border-radius: 15px; padding: 20px 10px; text-decoration: none;
             color: white; display: flex; flex-direction: column; align-items: center;
             transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            animation: fadeIn 0.5s ease;
         }
 
-        /* Efecto de pulsación */
-        .card:active { transform: scale(0.9); background-color: var(--accent); color: var(--bg); }
-        
-        /* Animación suave al ocultar */
-        .card.hidden { display: none; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
+        .card:active { transform: scale(0.9); background-color: var(--accent); color: var(--bg); }
+        .card.hidden { display: none; }
         .emoji { font-size: 2.2rem; margin-bottom: 10px; }
-        .card span:last-child { font-weight: bold; font-size: 0.9rem; }
+        .card span:last-child { font-weight: bold; font-size: 0.9rem; text-transform: capitalize; }
     </style>
 </head>
 <body>
@@ -47,54 +46,52 @@
         <input type="text" id="buscador" placeholder="Buscar herramienta..." oninput="filtrar()">
     </div>
 
-    <div class="grid" id="lista-apps">
-        <a href="jsgo.html" class="card">
-            <span class="emoji">🚀</span>
-            <span>jsgo</span>
-        </a>
-        
-        <a href="Traductor.html" class="card">
-            <span class="emoji">🌍</span>
-            <span>Traductor</span>
-        </a>
-
-        <a href="Agenda.html" class="card">
-            <span class="emoji">📅</span>
-            <span>Agenda</span>
-        </a>
-
-        <a href="Receptor.html" class="card">
-            <span class="emoji">📡</span>
-            <span>Receptor</span>
-        </a>
-
-        <a href="Reproductive.html" class="card">
-            <span class="emoji">🧬</span>
-            <span>Reproductor</span>
-        </a>
-
-        <a href="gamepack.html" class="card" style="border-color: #ffcc00;">
-            <span class="emoji">🕹️</span>
-            <span>GamePack</span>
-        </a>
-    </div>
+    <div class="grid" id="lista-apps"></div>
 
     <script>
+        const usuario = "sacanario88";
+        const repo = "Wey";
+
+        async function cargarProyectos() {
+            const contenedor = document.getElementById('lista-apps');
+            try {
+                const res = await fetch(`https://api.github.com/repos/${usuario}/${repo}/contents/`);
+                const archivos = await res.json();
+
+                // Filtrar solo archivos .html que no sean index.html
+                const proyectos = archivos.filter(f => f.name.endsWith('.html') && f.name.toLowerCase() !== 'index.html');
+
+                proyectos.forEach(archivo => {
+                    const nombreLimpio = archivo.name.replace('.html', '').replace(/_/g, ' ');
+                    
+                    const card = document.createElement('a');
+                    card.href = archivo.name;
+                    card.className = 'card';
+                    // Si el nombre es "gamepack", le ponemos el borde dorado que tenías
+                    if(nombreLimpio.toLowerCase().includes('gamepack')) card.style.borderColor = '#ffcc00';
+
+                    card.innerHTML = `
+                        <span class="emoji">🛠️</span>
+                        <span>${nombreLimpio}</span>
+                    `;
+                    contenedor.appendChild(card);
+                });
+            } catch (error) {
+                console.error("Error cargando proyectos:", error);
+            }
+        }
+
         function filtrar() {
             const texto = document.getElementById('buscador').value.toLowerCase();
             const tarjetas = document.querySelectorAll('.card');
-
             tarjetas.forEach(tarjeta => {
-                // Buscamos el texto dentro del 'span' de cada tarjeta
                 const nombreApp = tarjeta.querySelector('span:last-child').innerText.toLowerCase();
-                
-                if (nombreApp.includes(texto)) {
-                    tarjeta.classList.remove('hidden');
-                } else {
-                    tarjeta.classList.add('hidden');
-                }
+                tarjeta.classList.toggle('hidden', !nombreApp.includes(texto));
             });
         }
+
+        // Ejecutar al cargar la página
+        cargarProyectos();
     </script>
 
 </body>
