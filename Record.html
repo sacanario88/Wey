@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reproductor MP4 Online y Local</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            padding: 15px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 100%;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        video {
+            width: 100%;
+            height: auto;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .section {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+        button.add { background: #2196F3; }
+        button.play { background: #4CAF50; }
+        button.delete { background: #f44336; }
+        #playlist {
+            list-style: none;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 5px;
+        }
+        #playlist li {
+            padding: 10px;
+            background: #f9f9f9;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #speedSelector {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <video id="player" controls style="width:100%; aspect-ratio:16/9; object-fit:cover; border:1px solid #222;"></video>
+
+        <!-- SECCIÓN ONLINE -->
+        <div class="section">
+            <h2>🌐 Vídeo Online</h2>
+            <input type="text" id="onlineName" placeholder="Nombre (opcional)">
+            <input type="text" id="onlineUrl" placeholder="URL completa">
+            <button class="add" onclick="addOnlineVideo()">Añadir Vídeo Online</button>
+        </div>
+
+        <!-- SECCIÓN LOCAL -->
+        <div class="section">
+            <h2>📂 Vídeo Local</h2>
+            <input type="file" id="localFile" accept="video/mp4">
+            <input type="text" id="localName" placeholder="Nombre (opcional)">
+            <button class="add" onclick="addLocalVideo()">Añadir Vídeo Local</button>
+        </div>
+
+        <!-- CONTROLES -->
+        <div class="section">
+            <h2>⚙️ Controles</h2>
+            <select id="speedSelector" onchange="setSpeed()">
+                <option value="0.25">0.25x - Muy Lento</option>
+                <option value="0.5">0.5x - Lento</option>
+                <option value="1" selected>1x - Normal</option>
+                <option value="1.5">1.5x - Rápido</option>
+                <option value="2">2x - Muy Rápido</option>
+            </select>
+            <button class="play" onclick="playSelected()">▶️ Reproducir Seleccionado</button>
+            <button onclick="toggleAutoPlay()">🔄 Alternar Auto-Siguiente</button>
+        </div>
+
+        <!-- LISTA DE REPRODUCCIÓN -->
+        <div class="section">
+            <h2>📋 Lista de Reproducción</h2>
+            <ul id="playlist"></ul>
+        </div>
+    </div>
+
+    <script>
+        const player = document.getElementById('player');
+        const playlist = document.getElementById('playlist');
+        const speedSelector = document.getElementById('speedSelector');
+        let videoList = [];
+        let selectedIndex = -1;
+        let autoPlayNext = false;
+
+        // AÑADIR VÍDEO ONLINE
+        function addOnlineVideo() {
+            const name = document.getElementById('onlineName').value.trim() || 'Vídeo Online';
+            const url = document.getElementById('onlineUrl').value.trim();
+            
+            if (!url) {
+                alert('Escribe la URL completa');
+                return;
+            }
+            
+            videoList.push({ type: 'online', name: name, source: url });
+            updatePlaylist();
+            document.getElementById('onlineName').value = '';
+            document.getElementById('onlineUrl').value = '';
+        }
+
+        // AÑADIR VÍDEO LOCAL
+        function addLocalVideo() {
+            const fileInput = document.getElementById('localFile');
+            const name = document.getElementById('localName').value.trim() || fileInput.files[0]?.name || 'Vídeo Local';
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Selecciona un archivo MP4');
+                return;
+            }
+            
+            videoList.push({ type: 'local', name: name, source: file });
+            updatePlaylist();
+            fileInput.value = '';
+            document.getElementById('localName').value = '';
+        }
+
+        // ACTUALIZAR LISTA EN PANTALLA
+        function updatePlaylist() {
+            playlist.innerHTML = '';
+            if (videoList.length === 0) {
+                playlist.innerHTML = '<li style="color:#666;">Lista vacía</li>';
+                return;
+            }
+            
+            videoList.forEach((video, index) => {
+                const li = document.createElement('li');
+                li.textContent = video.name;
+                li.style.backgroundColor = index === selectedIndex ? '#e3f2fd' : '#f9f9f9';
+                
+                // SELECCIONAR VÍDEO AL PINCHAR
+                li.onclick = () => {
+                    selectedIndex = index;
+                    updatePlaylist();
+                };
+
+                // BOTÓN ELIMINAR
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete';
+                deleteBtn.textContent = 'X';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    videoList.splice(index, 1);
+                    if (selectedIndex === index) selectedIndex = -1;
+                    updatePlaylist();
+                };
+
+                li.appendChild(deleteBtn);
+                playlist.appendChild(li);
+            });
+        }
+
+        // REPRODUCIR SELECCIONADO
+        function playSelected() {
+            if (selectedIndex === -1 || videoList.length === 0) {
+                alert('Selecciona un vídeo de la lista');
+                return;
+            }
+
+            const video = videoList[selectedIndex];
+            if (video.type === 'online') {
+                player.src = video.source;
+            } else {
+                player.src = URL.createObjectURL(video.source);
+            }
+            player.play();
+            setSpeed();
+        }
+
+        // AJUSTAR VELOCIDAD
+        function setSpeed() {
+            player.playbackRate = speedSelector.value;
+        }
+
+        // ALTERNAR REPRODUCCIÓN AUTOMÁTICA
+        function toggleAutoPlay() {
+            autoPlayNext = !autoPlayNext;
+            alert(autoPlayNext ? 'Auto-siguiente ACTIVADO' : 'Auto-siguiente DESACTIVADO');
+        }
+
+        // REPRODUCIR SIGUIENTE AL TERMINAR
+        player.onended = () => {
+            if (!autoPlayNext || videoList.length <= 1) return;
+
+            selectedIndex = (selectedIndex + 1) % videoList.length;
+            updatePlaylist();
+            playSelected();
+        };
+
+        // INICIAR LISTA
+        updatePlaylist();
+    </script>
+</body>
+</html>
