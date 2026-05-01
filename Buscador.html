@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Launcher Multiplataforma</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: sans-serif;
+            background: #0a0a0a;
+            color: white;
+            height: 100vh;
+            overflow: hidden; /* Evita rebotes en móvil */
+        }
+
+        #menu {
+            position: fixed;
+            width: 220px;
+            background: rgba(30, 30, 30, 0.95);
+            border: 1px solid #444;
+            border-radius: 15px;
+            padding: 12px;
+            z-index: 9999;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            /* CRUCIAL PARA MÓVIL: Evita que el dedo haga scroll al tocar el menú */
+            touch-action: none; 
+        }
+
+        #header {
+            cursor: move;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #444;
+            border-radius: 8px;
+            font-size: 14px;
+            user-select: none;
+        }
+
+        button, select, input {
+            width: 100%;
+            margin: 5px 0;
+            padding: 10px; /* Más grande para que sea fácil pulsar con el dedo */
+            border: none;
+            border-radius: 8px;
+            background: #222;
+            color: white;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        button {
+            cursor: pointer;
+            background: #333;
+        }
+
+        #toggleBtn {
+            background: #0078d4;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="menu">
+    <div id="header">🚀 ARRASTRAR AQUÍ</div>
+
+    <div id="menuContent">
+        <input id="search" placeholder="Buscar...">
+        <select id="engine">
+            <option value="https://google.com/search?q=">Google</option>
+            <option value="https://yandex.com/search/?text=">Yandex</option>
+        </select>
+        <button onclick="buscar()" style="background: #28a745;">Buscar</button>
+        <hr style="border: 0.5px solid #444;">
+        <button onclick="window.open('https://youtube.com', '_blank')">YouTube</button>
+    </div>
+
+    <button id="toggleBtn" onclick="toggleMenu()">Minimizar</button>
+</div>
+
+<script>
+    const menu = document.getElementById("menu");
+    const header = document.getElementById("header");
+    const menuContent = document.getElementById("menuContent");
+    const toggleBtn = document.getElementById("toggleBtn");
+
+    // --- LÓGICA DE MINIMIZAR ---
+    function toggleMenu() {
+        if (menuContent.style.display === "none") {
+            menuContent.style.display = "block";
+            toggleBtn.innerText = "Minimizar";
+        } else {
+            menuContent.style.display = "none";
+            toggleBtn.innerText = "Maximizar";
+        }
+    }
+
+    function buscar() {
+        let q = document.getElementById("search").value;
+        let engine = document.getElementById("engine").value;
+        if(q) window.open(engine + encodeURIComponent(q), "_blank");
+    }
+
+    // --- SISTEMA DE MOVIMIENTO UNIVERSAL (PC Y MÓVIL) ---
+    let active = false;
+    let currentX;
+    let currentY;
+    let initialX;
+    let initialY;
+    let xOffset = 0;
+    let yOffset = 0;
+
+    // Cargar posición guardada
+    if (localStorage.getItem("posX")) {
+        xOffset = parseInt(localStorage.getItem("posX"));
+        yOffset = parseInt(localStorage.getItem("posY"));
+        setTranslate(xOffset, yOffset, menu);
+    }
+
+    // Eventos de Ratón
+    header.addEventListener("mousedown", dragStart);
+    document.addEventListener("mousemove", drag);
+    document.addEventListener("mouseup", dragEnd);
+
+    // Eventos de Táctil (Móvil)
+    header.addEventListener("touchstart", dragStart, {passive: false});
+    document.addEventListener("touchmove", drag, {passive: false});
+    document.addEventListener("touchend", dragEnd);
+
+    function dragStart(e) {
+        if (e.type === "touchstart") {
+            initialX = e.touches[0].clientX - xOffset;
+            initialY = e.touches[0].clientY - yOffset;
+        } else {
+            initialX = e.clientX - xOffset;
+            initialY = e.clientY - yOffset;
+        }
+        
+        if (e.target === header) {
+            active = true;
+        }
+    }
+
+    function drag(e) {
+        if (active) {
+            e.preventDefault(); // Evita que el móvil haga scroll al mover el dedo
+            
+            if (e.type === "touchmove") {
+                currentX = e.touches[0].clientX - initialX;
+                currentY = e.touches[0].clientY - initialY;
+            } else {
+                currentX = e.clientX - initialX;
+                currentY = e.clientY - initialY;
+            }
+
+            xOffset = currentX;
+            yOffset = currentY;
+
+            setTranslate(currentX, currentY, menu);
+        }
+    }
+
+    function dragEnd() {
+        initialX = currentX;
+        initialY = currentY;
+        active = false;
+        
+        // Guardar posición
+        localStorage.setItem("posX", xOffset);
+        localStorage.setItem("posY", yOffset);
+    }
+
+    function setTranslate(xPos, yPos, el) {
+        el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+    }
+</script>
+
+</body>
+</html>
