@@ -1,0 +1,75 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi página</title>
+</head>
+<body>
+<style>
+        body { background: #222; color: #0f0; font-family: monospace; padding: 20px; }
+        h2 { text-align: center; }
+        #consola {
+            width: 90%;
+            height: 150px;
+            background: #000;
+            color: #0f0;
+            border: 2px solid #555;
+            padding: 10px;
+            font-size: 14px;
+            resize: none;
+        }
+        .botones {
+            margin-top: 10px;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 5px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+        }
+        #btn-ejecutar { background: #0a0; color: white; }
+        #btn-ejecutar:hover { background: #0d0; }
+        #btn-limpiar { background: #333; color: white; }
+        #btn-limpiar:hover { background: #555; }
+    </style>
+<h2>💻 CONSOLA DE CONTROL REMOTO JS</h2>
+
+    <textarea id="consola" placeholder="Escribe aquí tu código JavaScript..."></textarea>
+
+    <div class="botones">
+        <button id="btn-ejecutar" onclick="ejecutar()">⚡ EJECUTAR CÓDIGO</button>
+        <button id="btn-limpiar" onclick="limpiar()">🧹 LIMPIAR</button>
+    </div>
+
+    <!-- AQUÍ IRÍA TU REPRODUCTOR, ETC -->
+    <video id="mi_reproductor" controls style="width:100%; aspect-ratio:16/9; object-fit:cover; border:1px solid #222;"><source src="" type="video/mp4"></video><br><br>
+   <!-- Aquí es donde vas a "pintar" cosas nuevas -->
+<div id="add"></div>
+
+    <script>
+        // Función para EJECUTAR lo escrito
+        function ejecutar() {
+            let codigo = document.getElementById("consola").value;
+            try {
+                eval(codigo); // 🧨 MAGIA: Convierte texto en instrucciones
+                console.log("Código ejecutado correctamente");
+            } catch (error) {
+                console.error("Error en el código:", error);
+                alert("Error: " + error.message);
+            }
+        }
+
+        // Función para LIMPIAR la caja
+        function limpiar() {
+            document.getElementById("consola").value = "";
+        }
+    </script>
+
+</body>
+</html>
