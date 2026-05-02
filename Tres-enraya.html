@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Tres en Raya - Base</title>
+    <style>
+        :root { --color-x: #ff4757; --color-o: #2e86de; --bg-win: #f1c40f; }
+        body { font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; background-color: #f8f9fa; color: #2f3542; }
+        .marcador { display: flex; gap: 40px; margin: 15px 0; font-size: 1.2rem; background: white; padding: 10px 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .score { font-weight: bold; } #score-x { color: var(--color-x); } #score-o { color: var(--color-o); }
+        .controles { margin-bottom: 15px; } select { padding: 8px; border-radius: 5px; border: 1px solid #ccc; font-size: 1rem; }
+        #estado { margin-bottom: 15px; font-size: 1.1rem; font-weight: 600; min-height: 1.5rem; }
+        .tablero { display: grid; grid-template-columns: repeat(3, 100px); gap: 10px; }
+        .celda { width: 100px; height: 100px; background-color: #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 0 #ddd; }
+        .celda:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #ccc; }
+        .ganador-anim { background-color: var(--bg-win) !important; color: white !important; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { transform: scale(1.1); } 50% { transform: scale(1.05); } 100% { transform: scale(1.1); } }
+        .botones { margin-top: 25px; display: flex; gap: 10px; }
+        button { padding: 10px 20px; font-size: 0.9rem; border: none; background: #2f3542; color: white; border-radius: 8px; cursor: pointer; }
+        button:hover { background: #57606f; } .btn-reset { background: #e74c3c; }
+    </style>
+</head>
+<body>
+    <h1>Tres en Raya</h1>
+    <div class="controles">
+        <label>Modo de juego: </label>
+        <select id="modo-juego">
+            <option value="pvp">Jugador vs Jugador</option>
+            <option value="pvc">Jugador vs CPU</option>
+        </select>
+    </div>
+    <div class="marcador">
+        <div>X: <span id="score-x" class="score">0</span></div>
+        <div>O: <span id="score-o" class="score">0</span></div>
+    </div>
+    <div id="estado">Iniciando...</div>
+    <div id="tablero-gui" class="tablero"></div>
+    <div class="botones">
+        <button id="btn-nueva">Nueva Partida</button>
+        <button class="btn-reset" id="btn-borrar">Borrar Todo</button>
+    </div>
+
+    <!-- AQUÍ NO HAY NINGÚN SCRIPT -->
+</body>
+</html>
