@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+
+<style>
+
+body{
+    margin:0;
+    padding:20px;
+    background:#111;
+    color:white;
+    font-family:Arial;
+}
+
+h2{
+    text-align:center;
+}
+
+#lista{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:12px;
+    background:#222;
+    color:white;
+    font-size:18px;
+    margin-bottom:20px;
+}
+
+#video{
+    width:100%;
+    border-radius:14px;
+    background:black;
+    border:2px solid #333;
+}
+
+.info{
+    margin-top:10px;
+    text-align:center;
+    color:#aaa;
+}
+
+</style>
+</head>
+
+<body>
+
+<h2>Lista IPTV</h2>
+
+<select id="lista">
+<option>Cargando canales...</option>
+</select>
+
+<video id="video"
+controls
+autoplay>
+</video>
+
+<div class="info">
+Selecciona un canal para reproducir
+</div>
+
+<script>
+
+const ruta = "file:///storage/emulated/0/Download/lista.m3u";
+
+const lista = document.getElementById('lista');
+const video = document.getElementById('video');
+
+fetch(ruta)
+
+.then(res => res.text())
+
+.then(texto => {
+
+    lista.innerHTML = "";
+
+    const lineas = texto.split('\n');
+
+    let nombre = '';
+
+    lineas.forEach(linea => {
+
+        linea = linea.trim();
+
+        if(linea.startsWith('#EXTINF')){
+
+            nombre = linea.split(',')[1] || 'Canal';
+
+        }
+
+        else if(
+            linea.startsWith('http://') ||
+            linea.startsWith('https://')
+        ){
+
+            const option = document.createElement('option');
+
+            option.value = linea;
+            option.textContent = nombre;
+
+            lista.appendChild(option);
+
+        }
+
+    });
+
+    // reproducir primero automático
+    if(lista.options.length > 0){
+
+        video.src = lista.options[0].value;
+
+        video.play();
+
+    }
+
+})
+
+.catch(err => {
+
+    lista.innerHTML =
+    "<option>Error cargando lista.m3u</option>";
+
+    console.log(err);
+
+});
+
+lista.addEventListener('change', () => {
+
+    video.src = lista.value;
+
+    video.play();
+
+});
+
+</script>
+
+</body>
+</html>
