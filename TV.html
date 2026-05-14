@@ -1,0 +1,40 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi APP</title>
+</head>
+<body>
+<input id='t' placeholder="Texto"><br>
+
+
+
+<video id="v" muted autoplay src="a.m3u8"></video>
+
+<button onclick="v.play()">▶</button>
+<button onclick="v.pause()">⏸</button>
+<button onclick="fullscreenVideo()">⛶</button>
+<button onclick="ir()">cargar</button>
+<br><br>
+<audio id="a" autoplay controls style="width:100%; aspect-ratio:16/9; object-fit:cover; border:1px" src="a.m3u8" type="audio/aac"</audio><br><br>
+<script>
+function fullscreenVideo() {
+    if (v.requestFullscreen) {
+        v.requestFullscreen();
+    } else if (v.webkitEnterFullscreen) {
+        // Android/iPhone
+        v.webkitEnterFullscreen();
+    }
+}
+function ir() {
+v.src = t.value;
+a.src = t.value;
+}
+
+</script><br><br>
+
+</body>
+</html>
