@@ -1,0 +1,141 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MPOPUP</title>
+</head>
+<body>
+
+<style>
+
+body {
+  font-family: Arial;
+  background: #111;
+  color: white;
+  padding: 10px;
+}
+
+h2 {
+  text-align: center;
+}
+
+/* Botones */
+.botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+button {
+  flex: 1 1 30%;
+  padding: 12px;
+  font-size: 14px;
+  background: #333;
+  color: white;
+  border: none;
+  border-radius: 8px;
+}
+
+button:active {
+  background: #555;
+}
+
+/* Editor */
+textarea {
+  width: 100%;
+  height: 120px;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  margin-bottom: 10px;
+}
+
+/* Botones principales */
+.accion {
+  width: 100%;
+  margin-top: 5px;
+}
+
+.mostrar {
+  background: #0a84ff;
+}
+
+.guardar {
+  background: #28a745;
+}
+
+/* Preview normal */
+#preview {
+  background: white;
+  color: black;
+  padding: 10px;
+  border-radius: 8px;
+  min-height: 100px;
+  margin-top: 10px;
+}
+
+</style>
+<button onclick="togglePopup(1)">
+Abrir / Reroductor
+</button><br><br>
+
+<button onclick="togglePopup(2)">
+Abrir / IPTV-Local
+</button><br><br>
+
+<button onclick="togglePopup(3)">
+Abrir / REPRO-YouTube
+</button>
+
+<script>
+
+let popups = {};
+
+const sitios = {
+    1: "https://sacanario88.github.io/Wey/repro41.html",
+    2: "https://sacanario88.github.io/Wey/Reproductive.html",
+    3: "https://sacanario88.github.io/Wey/Aifra.html"
+};
+
+function togglePopup(id){
+
+    // Si ya está abierto → cerrar
+    if(popups[id] && !popups[id].closed){
+        popups[id].close();
+        popups[id] = null;
+        return;
+    }
+
+    // Crear popup
+    popups[id] = window.open(
+        "",
+        "popup"+id,
+        "width=1000,height=700,toolbar=no,menubar=no,location=no,status=no"
+    );
+
+    // Meter iframe
+    popups[id].document.write(`
+        <!DOCTYPE html>
+        <html>
+        <body style="margin:0;background:black;overflow:hidden;">
+
+            <iframe
+                src="${sitios[id]}"
+                style="width:100%;height:100vh;border:none;"
+                allowfullscreen
+                allow="fullscreen">
+            </iframe>
+
+        </body>
+        </html>
+    `);
+
+}
+
+</script>
+</body>
+</html>
