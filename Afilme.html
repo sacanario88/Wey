@@ -1,0 +1,62 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>@Reproductor@!</title>
+</head>
+<body>
+<style>
+    body { background: #000; color: #fff; font-family: sans-serif; padding: 20px; line-height: 1.6; }
+    h1 { color: #00e5ff; border-bottom: 2px solid #222; padding-bottom: 10px; font-size: 1.5rem; }
+    p { color: #ccc; font-size: 1.1rem; }
+    
+    /* Estilo del Input */
+    input { 
+        width: 100%; padding: 15px; background: #111; color: #00e5ff; 
+        border: 1px solid #333; border-radius: 8px; margin: 10px 0;
+        box-sizing: border-box; font-size: 16px; /* Evita zoom automático en iPhone */
+    }
+    
+    /* Contenedor del video */
+    video { 
+        width: 100%; border-radius: 12px; margin: 15px 0; border: 1px solid #222;
+        box-shadow: 0 5px 20px rgba(0,229,255,0.1); background: #000;
+    }
+
+    /* Botón de acción */
+    .btn-ver { 
+        background: #00e5ff; color: #000; border: none; padding: 15px; 
+        font-weight: bold; border-radius: 8px; cursor: pointer; 
+        width: 100%; font-size: 1.1rem; transition: 0.3s;
+    }
+    .btn-ver:active { transform: scale(0.98); background: #00b8cc; }
+
+    .card { background: #111; padding: 15px; border-radius: 10px; border: 1px solid #222; margin-top: 10px; }
+</style>
+<h1>Reproductor M3U8 o MP4</h1>
+<input type="hidden" id="a" value="https://m3u8player.app/es/embed/player/?video_url=" placeholder="post"><br>
+<input id="b" value="" placeholder="url-Video"><br>
+<input type="hidden"id="c" value="&autoplay=true&type=m3u8" placeholder="completar"><br>
+<button class="btn-ver" onclick="cargarNuevoVideo()">VER VÍDEO</button><br><br>
+<button class="btn-ver" onclick="Limpiar()">Limpiar</button><br><br>
+<iframe id="p" src="https://m3u8player.app/es/embed/player/?video_url=https%253A%252F%252Ftest-streams.mux.dev%252Fx36xhzz%252Fx36xhzz.m3u8&amp;autoplay=true&amp;type=m3u8" width="800" height="450" style="border:0;max-width:100%" title="Embedded M3U8 (HLS) player" loading="lazy" allowfullscreen allow="fullscreen; autoplay"></iframe>
+<script>
+function cargarNuevoVideo() {
+let a = document.getElementById('a').value;
+let b = document.getElementById('b').value;
+let c = document.getElementById('c').value;
+let resultado = a + b + c;
+document.getElementById('p').src = resultado;
+
+}
+function Limpiar(){
+
+document.getElementById('b').value = "";
+
+}
+</script>
+</body>
+</html>
