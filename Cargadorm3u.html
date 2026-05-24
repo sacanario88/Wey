@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📋 Cargador Local M3U</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            background-color: #f4f4f9;
+            padding: 15px;
+            font-size: 16px;
+        }
+        h2 {
+            text-align: center;
+            color: #222;
+            margin-bottom: 20px;
+        }
+
+        /* PANEL CARGA ARCHIVO */
+        .panel-carga {
+            background: #fff;
+            padding: 18px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .panel-carga h3 { margin-bottom: 12px; color: #333; }
+        
+        /* Estilo para el input de archivo */
+        #archivoM3U {
+            display: none; /* Ocultamos el input original para poner nuestro botón */
+        }
+        .boton-archivo {
+            display: inline-block;
+            padding: 12px 20px;
+            background: #17a2b8;
+            color: #fff;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .boton-archivo:hover {
+            background: #138496;
+        }
+        #nombreArchivo {
+            margin-top: 10px;
+            color: #555;
+            font-style: italic;
+        }
+
+        /* INPUT Y COPIAR */
+        .panel-seleccion {
+            background: #fff;
+            padding: 18px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        #urlSeleccionada {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px 15px;
+            border: 2px solid #007bff;
+            border-radius: 6px;
+            font-size: 15px;
+            background: #f8f9fa;
+        }
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 5px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .btn-copiar {
+            background: #007bff;
+            color: #fff;
+        }
+        .mensaje-copiado {
+            color: #28a745;
+            font-weight: bold;
+            margin-left: 10px;
+            display: none;
+        }
+
+        /* TARJETAS */
+        .contenedor-tarjetas {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+        }
+        .tarjeta {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            border-left: 5px solid #28a745;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-weight: bold;
+            color: #333;
+            word-break: break-word;
+        }
+        .tarjeta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            background: #eafaf1;
+        }
+        .tarjeta.activa {
+            background: #28a745;
+            color: white;
+            border-color: #1e7e34;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>📋 Cargador Local de Listas M3U</h2>
+
+    <!-- PANEL CARGAR ARCHIVO DEL DISPOSITIVO -->
+    <div class="panel-carga">
+        <h3>📂 Selecciona tu archivo .m3u</h3>
+        <!-- Input para elegir archivo de tu PC/Móvil/TV -->
+        <input type="file" id="archivoM3U" accept=".m3u,.txt" onchange="cargarArchivoLocal(this)">
+        <label for="archivoM3U" class="boton-archivo">📁 BUSCAR ARCHIVO</label>
+        <div id="nombreArchivo">Ningún archivo seleccionado...</div>
+    </div>
+
+    <!-- INPUT + COPIAR -->
+    <div class="panel-seleccion">
+        <input type="text" id="urlSeleccionada" placeholder="Haz clic en una tarjeta → aquí aparecerá el enlace" readonly>
+        <button class="btn btn-copiar" onclick="copiarAlPortapapeles()">📋 COPIAR</button>
+        <span class="mensaje-copiado" id="msgCopiado">✅ ¡COPIADO!</span>
+    </div>
+
+    <!-- TARJETAS -->
+    <div class="contenedor-tarjetas" id="contenedorTarjetas">
+        <p style="text-align:center; width:100%; color:#666; padding:30px;">Selecciona un archivo M3U para ver los canales aquí</p>
+    </div>
+
+    <script>
+        let listaCanales = [];
+
+        // 📤 LEER ARCHIVO SELECCIONADO DEL DISCO
+        function cargarArchivoLocal(input) {
+            const archivo = input.files[0];
+            if (!archivo) return;
+
+            // Mostrar nombre del archivo cargado
+            document.getElementById('nombreArchivo').textContent = `✅ Cargado: ${archivo.name}`;
+
+            // Leer el contenido del archivo como texto
+            const lector = new FileReader();
+            lector.onload = function(e) {
+                const contenidoTexto = e.target.result;
+                procesarM3U(contenidoTexto); // Procesamos igual que antes
+            };
+            lector.readAsText(archivo); // Leemos todo el archivo
+        }
+
+        // ⚙️ PROCESAR FORMATO M3U
+        function procesarM3U(texto) {
+            const lineas = texto.split(/\r?\n/);
+            listaCanales = [];
+            let nombreActual = "Canal sin nombre";
+
+            for (let linea of lineas) {
+                linea = linea.trim();
+                if (!linea || linea.startsWith("#EXTM3U")) continue;
+
+                if (linea.startsWith("#EXTINF:")) {
+                    // Sacar el nombre del canal
+                    const partes = linea.split(",");
+                    nombreActual = partes.length > 1 ? partes[1].trim() : "Canal";
+                }
+                else if (linea.startsWith("http")) {
+                    // Es una dirección, la guardamos
+                    listaCanales.push({ nombre: nombreActual, url: linea });
+                    nombreActual = "Canal sin nombre";
+                }
+            }
+
+            mostrarTarjetas();
+        }
+
+        // 🟦 MOSTRAR COMO TARJETAS CLICABLES
+        function mostrarTarjetas() {
+            const contenedor = document.getElementById('contenedorTarjetas');
+            contenedor.innerHTML = "";
+
+            if (listaCanales.length === 0) {
+                contenedor.innerHTML = `<p style="text-align:center; width:100%; color:#666; padding:30px;">⚠️ No se encontraron enlaces válidos en el archivo</p>`;
+                return;
+            }
+
+            listaCanales.forEach((canal) => {
+                const tarjeta = document.createElement('div');
+                tarjeta.className = 'tarjeta';
+                tarjeta.textContent = canal.nombre;
+                tarjeta.dataset.url = canal.url;
+
+                // AL HACER CLIC: Poner dirección en el input
+                tarjeta.onclick = () => {
+                    // Quitar selección anterior
+                    document.querySelectorAll('.tarjeta').forEach(t => t.classList.remove('activa'));
+                    // Marcar esta como activa
+                    tarjeta.classList.add('activa');
+                    // Mostrar la URL completa en el recuadro
+                    document.getElementById('urlSeleccionada').value = canal.url;
+                    // Ocultar mensaje de copiado
+                    document.getElementById('msgCopiado').style.display = 'none';
+                };
+
+                contenedor.appendChild(tarjeta);
+            });
+        }
+
+        // 📋 FUNCIÓN COPIAR AL PORTAPAPELES
+        function copiarAlPortapapeles() {
+            const input = document.getElementById('urlSeleccionada');
+            if (!input.value) return alert("⚠️ Primero selecciona un canal de las tarjetas");
+
+            navigator.clipboard.writeText(input.value)
+                .then(() => {
+                    const msg = document.getElementById('msgCopiado');
+                    msg.style.display = 'inline';
+                    setTimeout(() => msg.style.display = 'none', 2500);
+                })
+                .catch(err => alert("❌ No se pudo copiar: " + err));
+        }
+ javascript:(function(){function cargarMiScript(){let s=document.createElement('script');s.src='https://sacanario88.github.io/Wey/Js/ini.js';document.head.appendChild(s);}cargarMiScript();})();
+        
+    </script>
+</body>
+</html>
