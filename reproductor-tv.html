@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+  <title>Reproductor TV</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;background:#000;color:#fff;font-family:sans-serif;}
+    .barra{display:flex;gap:8px;padding:10px;align-items:center;}
+    #tv{flex:1;padding:8px;border:1px solid #444;border-radius:4px;background:#111;}
+    #cargar{padding:8px 16px;border:0;border-radius:4px;background:#2e86de;font-weight:bold;cursor:pointer;}
+    #cargar:focus{outline:2px solid #4fa1ff;}
+    .ctr{width:100vw;height:calc(100vh - 60px);display:flex;align-items:center;justify-content:center;}
+    #miVid{width:100%;aspect-ratio:16/9;object-fit:cover;border:1px solid #222;}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+</head>
+<body>
+<div class="barra">
+  <input id="tv" placeholder="URL .mp4 / .m3u8…">
+  <button id="cargar">Cargar</button>
+</div>
+<div class="ctr">
+  <video id="miVid" controls playsinline webkit-playsinline></video>
+</div>
+<script>
+(function(){
+  const v=document.getElementById("miVid"),e=document.getElementById("tv"),b=document.getElementById("cargar");
+  function u(x){if(!x)return;v.src="";if(Hls&&Hls.isSupported()){const h=new Hls({enableWorker:true,lowLatencyMode:true,maxBufferLength:20,maxMaxBufferLength:40,capLevelToPlayerSize:true});h.loadSource(x);h.attachMedia(v);}else v.src=x;v.play().catch(()=>{});}
+  b.onclick=()=>u(e.value.trim());
+  e.addEventListener("keydown",k=>{if(k.key==="Enter"){b.focus();u(e.value.trim());}});
+  v.onclick=()=>{document.fullscreenElement?document.exitFullscreen?document.exitFullscreen():document.webkitExitFullscreen&&document.webkitExitFullscreen():(v.requestFullscreen?v.requestFullscreen():v.webkitRequestFullscreen&&v.webkitRequestFullscreen());};
+})();
+</script>
+<script>
+javascript:(function(){function cargarMiScript(){let s=document.createElement('script');s.src='https://sacanario88.github.io/Wey/Js/ini2.js';document.head.appendChild(s);}cargarMiScript();})()
+</script>
+</body>
+</html>
