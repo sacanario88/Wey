@@ -1,0 +1,81 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grabartv</title>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+</head>
+<style>
+.guardar {
+  background: #28a745;
+}
+</style>
+<body>
+<input id="tv" placeholder="URL  .m3u8…">
+<button class='guardar' id="cargar">Cargar</button>
+<br><br>
+<button class='guardar' onclick="iniciarGrabacion()">Iniciar Grabación</button>
+<button class='guardar' onclick="detenerGrabacion()">Detener Grabación</button><br><br>
+<video id="miVid" controls webkit-playsinline style="width:100%; aspect-ratio:16/9; object-fit:cover; border:1px solid #222;"></video>
+<script>
+(function(){
+  const v=document.getElementById("miVid"),e=document.getElementById("tv"),b=document.getElementById("cargar");
+  function u(x){if(!x)return;v.src="";if(Hls&&Hls.isSupported()){const h=new Hls({enableWorker:true,lowLatencyMode:true,maxBufferLength:20,maxMaxBufferLength:40,capLevelToPlayerSize:true});h.loadSource(x);h.attachMedia(v);}else v.src=x;v.play().catch(()=>{});}
+  b.onclick=()=>u(e.value.trim());
+  e.addEventListener("keydown",k=>{if(k.key==="Enter"){b.focus();u(e.value.trim());}});
+  v.onclick=()=>{document.fullscreenElement?document.exitFullscreen?document.exitFullscreen():document.webkitExitFullscreen&&document.webkitExitFullscreen():(v.requestFullscreen?v.requestFullscreen():v.webkitRequestFullscreen&&v.webkitRequestFullscreen());};
+})();
+</script>
+<script>
+javascript:(function(){function cargarMiScript(){let s=document.createElement('script');s.src='https://sacanario88.github.io/Wey/Js/ini2.js';document.head.appendChild(s);}cargarMiScript();})()
+</script>
+<script>
+const video = document.getElementById("miVid");
+
+let recorder;
+let chunks = [];
+
+
+
+function iniciarGrabacion(){
+
+    chunks = [];
+
+    try{
+        const stream = video.captureStream();
+
+        recorder = new MediaRecorder(stream);
+
+        recorder.ondataavailable = e => {
+            if(e.data.size > 0){
+                chunks.push(e.data);
+            }
+        };
+
+        recorder.onstop = () => {
+            const blob = new Blob(chunks,{type:"video/mp4"});
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "grabacion.mp4";
+            a.click();
+        };
+
+        recorder.start();
+
+        alert("Grabación iniciada");
+    }catch(err){
+        alert("No se pudo grabar: " + err);
+    }
+}
+
+function detenerGrabacion(){
+    if(recorder && recorder.state !== "inactive"){
+        recorder.stop();
+    }
+}
+</script>
+</body>
+</html>
