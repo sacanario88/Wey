@@ -1,0 +1,29 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi página</title>
+<script src="http://rutv.pw/playerjs.11.11.5.js" async="">
+</script>
+</head>
+<body>
+<div id="player" style="padding: 0px; word-spacing: normal; position: relative; text-align: left; user-select: none; font-family: sans-serif; min-height: 15px; font-size: 14px; line-height: 1em; direction: ltr; height: 193.5px; box-sizing: content-box !important;">
+<pjsdiv id="oframeplayer" style="position: absolute; box-sizing: content-box !important; background-color: rgb(0, 0, 0); color: rgb(255, 255, 255); width: 100%; height: 100%; overflow: hidden; left: 0px; top: 0px; font-size: 14px; line-height: 1em; cursor: default;">
+
+
+<pjsdiv style="position: absolute; width: 100%; height: 100%; transition: transform 0.2s linear; text-align: center;">
+<video playsinline="1" x-webkit-airplay="allow" preload="none" style="width: 100%; height: 100%; object-fit: contain; transition: filter 0.2s linear; min-height: auto; max-height: none; min-width: auto; max-width: none;">
+</video>
+</pjsdiv>
+
+<script>
+function IR(){
+const videoURL=new URLSearchParams(location.search).get('url');if(!videoURL)return;
+var player = new Playerjs({id:"player", file:videoURL,autoplay:1});} IR();
+
+</script>
+</body>
+</html>
