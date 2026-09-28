@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Editor Directo</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #222; color: white; }
+        textarea { 
+            width: 100%; height: 250px; 
+            background: #333; color: #0f0; 
+            padding: 10px; border-radius: 10px;
+            font-family: monospace; font-size: 16px;
+            box-sizing: border-box; margin-bottom: 20px;
+        }
+        button { 
+            width: 100%; padding: 20px; 
+            font-size: 18px; font-weight: bold;
+            border-radius: 10px; border: none;
+            cursor: pointer; margin-bottom: 10px;
+        }
+        .btn-play { background: #28a745; color: white; }
+        .btn-clear { background: #555; color: white; }
+    </style>
+</head>
+<body>
+
+    <h3>Escribe tu código JS:</h3>
+    <textarea id="codigo" placeholder="let n = prompt('¿Tu nombre?'); alert('Hola ' + n);"></textarea>
+
+    <button class="btn-play" onclick="lanzarPrograma()">▶ EJECUTAR EN PANTALLA COMPLETA</button>
+    <button class="btn-clear" onclick="document.getElementById('codigo').value=''">LIMPIAR</button>
+
+    <script>
+        function lanzarPrograma() {
+            const js = document.getElementById('codigo').value;
+
+            // Creamos el HTML completo que queremos ejecutar
+            const htmlCompleto = `
+            <!DOCTYPE html>
+            <html>
+            <head><meta charset="UTF-8"><title>Resultado</title></head>
+            <body style="padding:20px; font-family:sans-serif;">
+                <h2>Programa en ejecución...</h2>
+                <button onclick="window.close()" style="padding:10px;">Cerrar y volver</button>
+                <script>
+                    try {
+                        ${js}
+                    } catch(e) {
+                        alert('Error en tu código: ' + e.message);
+                    }
+                <\/script>
+            </body>
+            </html>`;
+
+            // Creamos un "túnel" de datos (Blob)
+            const blob = new Blob([htmlCompleto], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+
+            // ABRIMOS UNA VENTANA NUEVA REAL
+            window.open(url, '_blank');
+        }
+    </script>
+</body>
+</html>
